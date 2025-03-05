@@ -27,7 +27,7 @@ def generate_grid(size):
 # Initialisation de Pygame
 pygame.init()
 screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
-pygame.display.set_caption("Agent IA avec Q-Learning et A*")
+pygame.display.set_caption("ExitQuest")
 
 def draw_grid(grid, agent_position, goal):
     """Dessine la grille dans la fenêtre Pygame."""
