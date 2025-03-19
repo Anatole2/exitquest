@@ -1,70 +1,29 @@
-import pygame
+import random
 import numpy as np
 
-# Paramètres
-GRID_SIZE = 11
-CELL_SIZE = 50
-WINDOW_SIZE = GRID_SIZE * CELL_SIZE
-
-# Couleurs
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)  # Départ
-RED = (255, 0, 0)   # Sortie
-
-# Nouveau labyrinthe
-labyrinthe = [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1],
-    [1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 0, 1, 1, 1, 3, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-]
-
-# Initialisation Pygame
-pygame.init()
-screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
-pygame.display.set_caption("ExitQuest")
-
-# Point de départ et de sortie
-labyrinthe[1][1] = 2  # Départ
-labyrinthe[9][9] = 3  # Sortie
-
-def draw_grid(labyrinthe):
-    for y in range(GRID_SIZE):
-        for x in range(GRID_SIZE):
-            rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
-            if labyrinthe[y][x] == 1:  # Mur
-                pygame.draw.rect(screen, BLACK, rect)
-            elif labyrinthe[y][x] == 2:  # Départ
-                pygame.draw.rect(screen, BLUE, rect)
-            elif labyrinthe[y][x] == 3:  # Sortie
-                pygame.draw.rect(screen, RED, rect)
-            else:  # Chemin
-                pygame.draw.rect(screen, WHITE, rect)
-
-def main():
-    running = True
-    clock = pygame.time.Clock()
+def generate_maze(size, start, end):
+    """Génère un labyrinthe avec DFS, les chemins sont d'une case de largeur maximum"""
+    grid = np.ones((size, size), dtype=int)  # Grille initiale (tout est un mur)
+    visited = np.zeros_like(grid)  # Matrice des cases visitées
     
-    while running:
-        screen.fill(BLACK)
-        draw_grid(labyrinthe)
-        pygame.display.flip()
+    def carve_path(x, y):
+        """Fonction DFS pour creuser le labyrinthe."""
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Droite, Bas, Gauche, Haut
+        random.shuffle(directions)  # Mélange pour ajouter de la variété
+        visited[x, y] = 1  # Marquer la cellule comme visitée
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        for dx, dy in directions:
+            nx, ny = x + dx * 2, y + dy * 2  # Aller deux cases plus loin pour laisser des murs
+            if 0 <= nx < size and 0 <= ny < size and visited[nx, ny] == 0:
+                grid[x + dx, y + dy] = 0  # Creuser un chemin
+                grid[nx, ny] = 0  # Creuser la nouvelle cellule
+                carve_path(nx, ny)  # Appel récursif pour continuer
 
-        clock.tick(30)
+    # Commencer à creuser depuis le point de départ
+    carve_path(start[0], start[1])
+    
+    # S'assurer qu'il y a un chemin entre le départ et la sortie
+    grid[start] = 0
+    grid[end] = 0
 
-    pygame.quit()
-
-if __name__ == "__main__":
-    main()
+    return grid

@@ -1,3 +1,4 @@
+"""
 import pygame
 import numpy as np
 from agent import HybridAgent
@@ -40,7 +41,7 @@ labyrinthe[1][1] = 2  # Départ
 labyrinthe[9][9] = 3  # Sortie
 
 def draw_grid(labyrinthe, agent_position, goal):
-    """Dessine la grille dans la fenêtre Pygame."""
+    # Dessine la grille dans la fenêtre Pygame.
     for y in range(GRID_SIZE):
         for x in range(GRID_SIZE):
             rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
@@ -105,3 +106,65 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
+
+import pygame
+import numpy as np
+from maze import generate_maze
+
+# Initialisation de Pygame
+pygame.init()
+
+# Paramètres du jeu
+GRID_SIZE = 10  # Taille du labyrinthe à 10x10
+CELL_SIZE = 30  # Taille de chaque cellule
+WINDOW_SIZE = GRID_SIZE * CELL_SIZE  # Taille de la fenêtre de jeu
+FPS = 30  # Nombre d'images par seconde
+
+# Couleurs
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+
+# Initialisation de la fenêtre Pygame
+screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
+pygame.display.set_caption("Labyrinthe")
+
+# Définir les positions de départ et d'arrivée
+start = (1, 1)  # Début du labyrinthe
+end = (9, 9)  # Fin du labyrinthe (position (9, 9) pour la sortie)
+
+# Générer le labyrinthe
+maze = generate_maze(GRID_SIZE, start, end)
+
+# Fonction pour dessiner le labyrinthe dans la fenêtre
+def draw_maze():
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            color = WHITE if maze[row, col] == 0 else BLACK  # 0 = chemin, 1 = mur
+            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+# Boucle principale du jeu
+running = True
+while running:
+    screen.fill(BLACK)  # Remplir l'écran en noir
+
+    # Dessiner le labyrinthe
+    draw_maze()
+
+    # Dessiner les positions de départ et d'arrivée
+    pygame.draw.rect(screen, GREEN, (start[1] * CELL_SIZE, start[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Départ
+    pygame.draw.rect(screen, (255, 0, 0), (end[1] * CELL_SIZE, end[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Arrivée
+
+    pygame.display.flip()  # Mettre à jour l'affichage
+
+    # Gestion des événements (quitter, etc.)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Limiter le taux de rafraîchissement
+    pygame.time.Clock().tick(FPS)
+
+# Quitter Pygame
+pygame.quit()
