@@ -1,4 +1,4 @@
-"""
+""" L'agent trouve la sortie dans un labyrinthe :
 import pygame
 import numpy as np
 from agent import HybridAgent
@@ -111,60 +111,76 @@ if __name__ == "__main__":
 import pygame
 import numpy as np
 from maze import generate_maze
+from environment import Environment
+from agent import HybridAgent
 
-# Initialisation de Pygame
+# Initialisation Pygame
 pygame.init()
 
-# Paramètres du jeu
-GRID_SIZE = 10  # Taille du labyrinthe à 10x10
-CELL_SIZE = 30  # Taille de chaque cellule
-WINDOW_SIZE = GRID_SIZE * CELL_SIZE  # Taille de la fenêtre de jeu
-FPS = 30  # Nombre d'images par seconde
+# Paramètres
+GRID_SIZE = 10
+CELL_SIZE = 50
+WINDOW_SIZE = GRID_SIZE * CELL_SIZE
+FPS = 10
 
-# Couleurs
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
+# Départ et arrivée
+start, end = (1, 1), (9, 9)
 
-# Initialisation de la fenêtre Pygame
-screen = pygame.display.set_mode((WINDOW_SIZE, WINDOW_SIZE))
-pygame.display.set_caption("Labyrinthe")
+# Génération labyrinthe
+maze = generate_maze(GRID_SIZE, start=start, end=end)
+maze[start] = 2
+maze[end] = 3
 
-# Définir les positions de départ et d'arrivée
-start = (1, 1)  # Début du labyrinthe
-end = (9, 9)  # Fin du labyrinthe (position (9, 9) pour la sortie)
+# Environnement visuel
+env = Environment(maze, CELL_SIZE)
 
-# Générer le labyrinthe
-maze = generate_maze(GRID_SIZE, start, end)
+# Initialisation agent
+agent = HybridAgent(grid=maze, goal=end)
 
-# Fonction pour dessiner le labyrinthe dans la fenêtre
-def draw_maze():
-    for row in range(GRID_SIZE):
-        for col in range(GRID_SIZE):
-            color = WHITE if maze[row, col] == 0 else BLACK  # 0 = chemin, 1 = mur
-            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+# Entrainement rapide
+agent.train(episodes=50)
 
-# Boucle principale du jeu
+# Position initiale agent
+state = start
 running = True
+
+# Boucle principale
 while running:
-    screen.fill(BLACK)  # Remplir l'écran en noir
+    pygame.event.pump()
 
-    # Dessiner le labyrinthe
-    draw_maze()
+    # Effacer traces (aucune trace visible)
+    maze[maze == 4] = 0
 
-    # Dessiner les positions de départ et d'arrivée
-    pygame.draw.rect(screen, GREEN, (start[1] * CELL_SIZE, start[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Départ
-    pygame.draw.rect(screen, (255, 0, 0), (end[1] * CELL_SIZE, end[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))  # Arrivée
+    # Affichage position actuelle
+    print(f"Position actuelle agent : {state}")
 
-    pygame.display.flip()  # Mettre à jour l'affichage
+    # Rendu graphique
+    env.render()
 
-    # Gestion des événements (quitter, etc.)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    # Affichage agent (en jaune)
+    x, y = state
+    pygame.draw.rect(env.window, (255, 255, 0), 
+                     (y * CELL_SIZE, x * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+    pygame.display.flip()
 
-    # Limiter le taux de rafraîchissement
-    pygame.time.Clock().tick(FPS)
+    # Vérifier arrivée à la sortie
+    if state == end:
+        print("✅ Agent a atteint la sortie !")
+        running = False
+        continue
 
-# Quitter Pygame
+    # Action suivante
+    next_action = agent.actionChoisie(*state)
+    if next_action is None:
+        print("❌ Agent bloqué, aucun chemin disponible.")
+        break
+
+    # Mise à jour position
+    state = next_action
+
+    pygame.time.wait(200)
+
+# Fin de simulation
+print("Simulation terminée. Fermeture dans 1 seconde.")
+pygame.time.wait(1000)
 pygame.quit()

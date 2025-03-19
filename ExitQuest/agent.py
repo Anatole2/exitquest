@@ -74,7 +74,7 @@ class HybridAgent:
         return []  # Aucun chemin trouvé
 
     def reconstruct_path(self, came_from, current):
-        """Reconstruit le chemin à partir du dictionnaire `came_from`."""
+        """Reconstruit le chemin à partir du dictionnaire came_from."""
         path = [current]
         while current in came_from:
             current = came_from[current]
@@ -89,22 +89,33 @@ class HybridAgent:
     def step(self, state, action):
         """Effectue une étape et retourne le nouvel état, la récompense et si l'épisode est terminé."""
         if action is None:
-            return state, -2, False  # Aucun mouvement possible, pénalité
-        self.visited.add(action)  # Marque la case comme visitée
-        if action == self.goal:  # L'agent atteint la sortie
-            return action, 10, True  # Récompense de 2 pour atteindre la sortie
-        elif action not in self.visited:  # L'agent visite une nouvelle case
-            return action, 5, False  # Récompense de 1 pour visiter une nouvelle case
-        return action, -1, False  # Sinon, aucune récompense (pénalité nulle)
+            return state, -5, True  # Pénalité plus sévère, fin de l'épisode
+
+        self.visited.add(action)
+        if action == self.goal:
+            return action, 10, True
+        elif action not in self.visited:
+            return action, -1, False
+        else:
+            return action, -1, False
+
 
     def update_q_table(self, state, action, next_state, reward):
         """Met à jour la Q-table en utilisant l'équation de Bellman."""
+        
+        if action is None:
+            return  # Si action est None, ignorer la mise à jour
+
         if state not in self.q_table:
             self.q_table[state] = {a: 0 for a in self.actions_valides(state)}
         if next_state not in self.q_table:
             self.q_table[next_state] = {a: 0 for a in self.actions_valides(next_state)}
+        
         best_next_action = max(self.q_table[next_state].values(), default=0)
-        self.q_table[state][action] += self.alpha * (reward + self.gamma * best_next_action - self.q_table[state][action])
+        self.q_table[state][action] += self.alpha * (
+            reward + self.gamma * best_next_action - self.q_table[state][action]
+        )
+
 
     def train(self, episodes):
         """Entraîne l'agent avec Q-learning sur un certain nombre d'épisodes."""

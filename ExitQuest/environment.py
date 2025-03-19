@@ -17,13 +17,15 @@ class Environment:
         self.window.fill((255, 255, 255))
         for x in range(self.size):
             for y in range(self.size):
-                color = (0, 0, 0)  # Noir pour les obstacles
-                if self.grid[x, y] == 2:
-                    color = (0, 255, 0)  # Vert pour le départ
+                color = (0, 0, 0)  # Mur noir par défaut
+                if self.grid[x, y] == 0:
+                    color = (255, 255, 255)  # Blanc chemin vide
+                elif self.grid[x, y] == 2:
+                    color = (0, 255, 0)  # Vert départ
                 elif self.grid[x, y] == 3:
-                    color = (255, 0, 0)  # Rouge pour la sortie
+                    color = (255, 0, 0)  # Rouge arrivée
                 elif self.grid[x, y] == 4:
-                    color = (0, 0, 255)  # Bleu pour le chemin
+                    color = (0, 0, 255)  # Bleu chemin emprunté par l'agent
                 pygame.draw.rect(self.window, color, 
-                                 (y * self.cell_size, x * self.cell_size, self.cell_size, self.cell_size))
+                                (y * self.cell_size, x * self.cell_size, self.cell_size, self.cell_size))
         pygame.display.flip()
